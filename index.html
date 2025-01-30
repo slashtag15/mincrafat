@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft in HTML</title>
+    <style>
+        body {
+            text-align: center;
+        }
+
+        canvas {
+            border: 1px solid black;
+            background-color: #87CEEB;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Simple Minecraft Clone</h1>
+    <canvas id="gameCanvas" width="500" height="500"></canvas>
+    <p>Use number keys (1-3) to select block type. Press space to break blocks. Press Enter to place blocks.</p>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const tileSize = 25;
+        const gridWidth = canvas.width / tileSize;
+        const gridHeight = canvas.height / tileSize;
+        let world = Array.from({ length: gridHeight }, () => Array(gridWidth).fill(0));
+        let blockType = 1;
+        let player = { x: 2, y: 2 };
+
+        const blockColors = { 0: "#87CEEB", 1: "#8B4513", 2: "#228B22", 3: "#000000" };
+
+        function drawWorld() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let y = 0; y < gridHeight; y++) {
+                for (let x = 0; x < gridWidth; x++) {
+                    ctx.fillStyle = blockColors[world[y][x]];
+                    ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+                    ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
+                }
+            }
+            drawPlayer();
+        }
+
+        function drawPlayer() {
+            ctx.fillStyle = "#FF0000";
+            ctx.fillRect(player.x * tileSize, player.y * tileSize, tileSize, tileSize);
+        }
+
+        canvas.addEventListener("click", (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((event.clientX - rect.left) / tileSize);
+            const y = Math.floor((event.clientY - rect.top) / tileSize);
+            world[y][x] = world[y][x] ? 0 : blockType;
+            drawWorld();
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key >= "1" && event.key <= "3") {
+                blockType = parseInt(event.key);
+            } else if (event.key === " ") {
+                breakBlock();
+            } else if (event.key === "Enter") {
+                placeBlock();
+            } else {
+                movePlayer(event.key);
+            }
+        });
+
+        function movePlayer(key) {
+            let { x, y } = player;
+            if (key === "ArrowUp" && y > 0) player.y--;
+            if (key === "ArrowDown" && y < gridHeight - 1) player.y++;
+            if (key === "ArrowLeft" && x > 0) player.x--;
+            if (key === "ArrowRight" && x < gridWidth - 1) player.x++;
+            drawWorld();
+        }
+
+        function breakBlock() {
+            if (world[player.y][player.x] !== 0) {
+                world[player.y][player.x] = 0;
+                drawWorld();
+            }
+        }
+
+        function placeBlock() {
+            if (world[player.y][player.x] === 0) {
+                world[player.y][player.x] = blockType;
+                drawWorld();
+            }
+        }
+
+        drawWorld();
+    </script>
+</body>
+
+</html>
