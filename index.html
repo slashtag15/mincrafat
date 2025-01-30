@@ -20,7 +20,9 @@
 <body>
     <h1>Simple Minecraft Clone</h1>
     <canvas id="gameCanvas" width="500" height="500"></canvas>
-    <p>Use number keys (1-3) to select block type. Press space to break blocks. Press Enter to place blocks.</p>
+    <p>Use number keys (1-3) to select block type.</p>
+    <p>Player 1: Arrow keys to move, Space to break blocks, Enter to place blocks.</p>
+    <p>Player 2: W/A/S/D to move, Backspace to break blocks, Shift to place blocks.</p>
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
@@ -29,7 +31,8 @@
         const gridHeight = canvas.height / tileSize;
         let world = Array.from({ length: gridHeight }, () => Array(gridWidth).fill(0));
         let blockType = 1;
-        let player = { x: 2, y: 2 };
+        let player1 = { x: 2, y: 2, color: "#FF0000" };
+        let player2 = { x: 4, y: 4, color: "#0000FF" };
 
         const blockColors = { 0: "#87CEEB", 1: "#8B4513", 2: "#228B22", 3: "#000000" };
 
@@ -42,51 +45,50 @@
                     ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
                 }
             }
-            drawPlayer();
+            drawPlayer(player1);
+            drawPlayer(player2);
         }
 
-        function drawPlayer() {
-            ctx.fillStyle = "#FF0000";
+        function drawPlayer(player) {
+            ctx.fillStyle = player.color;
             ctx.fillRect(player.x * tileSize, player.y * tileSize, tileSize, tileSize);
         }
-
-        canvas.addEventListener("click", (event) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = Math.floor((event.clientX - rect.left) / tileSize);
-            const y = Math.floor((event.clientY - rect.top) / tileSize);
-            world[y][x] = world[y][x] ? 0 : blockType;
-            drawWorld();
-        });
 
         document.addEventListener("keydown", (event) => {
             if (event.key >= "1" && event.key <= "3") {
                 blockType = parseInt(event.key);
             } else if (event.key === " ") {
-                breakBlock();
+                breakBlock(player1);
             } else if (event.key === "Enter") {
-                placeBlock();
+                placeBlock(player1);
+            } else if (event.key === "Backspace") {
+                breakBlock(player2);
+            } else if (event.key === "Shift") {
+                placeBlock(player2);
+            } else if (event.key === "w" || event.key === "a" || event.key === "s" || event.key === "d") {
+                movePlayer(player2, event.key);
             } else {
-                movePlayer(event.key);
+                movePlayer(player1, event.key);
             }
         });
 
-        function movePlayer(key) {
+        function movePlayer(player, key) {
             let { x, y } = player;
-            if (key === "ArrowUp" && y > 0) player.y--;
-            if (key === "ArrowDown" && y < gridHeight - 1) player.y++;
-            if (key === "ArrowLeft" && x > 0) player.x--;
-            if (key === "ArrowRight" && x < gridWidth - 1) player.x++;
+            if ((key === "ArrowUp" || key === "w") && y > 0) player.y--;
+            if ((key === "ArrowDown" || key === "s") && y < gridHeight - 1) player.y++;
+            if ((key === "ArrowLeft" || key === "a") && x > 0) player.x--;
+            if ((key === "ArrowRight" || key === "d") && x < gridWidth - 1) player.x++;
             drawWorld();
         }
 
-        function breakBlock() {
+        function breakBlock(player) {
             if (world[player.y][player.x] !== 0) {
                 world[player.y][player.x] = 0;
                 drawWorld();
             }
         }
 
-        function placeBlock() {
+        function placeBlock(player) {
             if (world[player.y][player.x] === 0) {
                 world[player.y][player.x] = blockType;
                 drawWorld();
